@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101b1a">
 <title>NÁCAR — El mundo que recuerda</title>
-<link rel="stylesheet" href="./styles.css?v=20261108-6">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}</script>
+<link rel="stylesheet" href="./styles.css?v=20261108-7">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/tsl":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.tsl.js"}}</script>
 </head>
 <body>
 <main id="game">
@@ -44,14 +44,17 @@
   });
   const moduleScript = document.createElement("script");
   moduleScript.type = "module";
-  moduleScript.src = "./src/main.js?v=20261108-6";
+  moduleScript.src = "./src/main.js?v=20261108-7";
   moduleScript.onerror = () => showError("No se pudo descargar src/main.js", "Comprueba la publicación de GitHub Pages y vuelve a cargar");
   document.body.appendChild(moduleScript);
   window.setTimeout(() => {
-    if (!window.NACAR_BOOT_OK && !window.NACAR_BOOT_FAILED) {
-      showError("NÁCAR no ha terminado de arrancar", "El navegador no ha ejecutado el motor 3D. Abre F12 > Consola y envíame el primer error rojo.");
+    if (window.NACAR_BOOT_OK || window.NACAR_BOOT_FAILED) return;
+    if (!window.NACAR_BOOT_STARTED) {
+      showError("No se ha podido ejecutar el módulo 3D", "El navegador no ha iniciado src/main.js. Revisa la descarga del archivo y la consola de Chrome.");
+    } else {
+      showError("El motor 3D sigue inicializando", "Fase actual: " + (window.NACAR_BOOT_STAGE || "sin información") + ". Comprueba chrome://gpu y la aceleración gráfica de Chrome.");
     }
-  }, 10000);
+  }, 20000);
 })();
 </script>
 </body></html>
