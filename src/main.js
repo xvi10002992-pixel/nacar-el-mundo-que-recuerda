@@ -23,10 +23,9 @@ window.NACAR_BOOT_STAGE="Preparando el renderizador 3D por CPU";
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const mix=(a,b,t)=>a+(b-a)*t;
   const hex=(n)=>"#"+(n>>>0).toString(16).padStart(6,"0");
-  const rgb=(r,g,b)=>"rgb("+clamp(r|0,0,255)+","+clamp(g|0,0,255)+","+clamp(b|0,0,255)+")";
   const colorMix=(c1,c2,t)=>{
-    const a=[(c1>>16)&255,(c1>>8)&255,c1&255],b=[(c2>>16)&255,(c2>>8)&255,c2&255];
-    return rgb(mix(a[0],b[0],t),mix(a[1],b[1],t),mix(a[2],b[2],t));
+    const a=[(c1>>>16)&255,(c1>>>8)&255,c1&255],b=[(c2>>>16)&255,(c2>>>8)&255,c2&255];
+    return ((clamp(mix(a[0],b[0],t),0,255)|0)<<16)|((clamp(mix(a[1],b[1],t),0,255)|0)<<8)|(clamp(mix(a[2],b[2],t),0,255)|0);
   };
   let W=innerWidth,H=innerHeight,DPR=1;
   function resize(){
@@ -335,7 +334,7 @@ window.NACAR_BOOT_STAGE="Preparando el renderizador 3D por CPU";
     visible.sort((a,b)=>b.depth-a.depth);
     for(const t of visible){
       const fog=clamp((t.depth-38)/105,0,.78);
-      const fill=fog>0?colorMix(t.color,0xaeb9ad,fog):hex(t.color);
+      const fill=hex(fog>0?colorMix(t.color,0xaeb9ad,fog):t.color);
       ctx.fillStyle=fill;
       ctx.beginPath();ctx.moveTo(t.pa.x,t.pa.y);ctx.lineTo(t.pb.x,t.pb.y);ctx.lineTo(t.pc.x,t.pc.y);ctx.closePath();ctx.fill();
     }
