@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101b1a">
 <title>NÁCAR — El mundo que recuerda</title>
-<link rel="stylesheet" href="./styles.css?v=20261108-8">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}</script>
+<link rel="stylesheet" href="./styles.css?v=20261108-cpu3d-1">
+
 </head>
 <body>
 <main id="game">
   <canvas id="world" aria-label="Mundo 3D de NÁCAR"></canvas>
   <section class="intro" id="intro">
-    <div class="eyebrow">PROTOTIPO JUGABLE · PRE-ALPHA · MOTOR WEBGL 2</div>
+    <div class="eyebrow">PROTOTIPO JUGABLE · PRE-ALPHA · MOTOR 3D POR CPU</div>
     <h1>NÁCAR</h1><p class="subtitle">El mundo que recuerda</p>
     <p class="intro-copy">Un mundo antiguo despierta bajo tus pasos.</p>
     <button id="start" type="button">Entrar en el mundo</button>
@@ -44,7 +44,7 @@
   });
   const moduleScript = document.createElement("script");
   moduleScript.type = "module";
-  moduleScript.src = "./src/main.js?v=20261108-webgl2-1";
+  moduleScript.src = "./src/main.js?v=20261108-cpu3d-1";
   moduleScript.onerror = () => showError("No se pudo descargar src/main.js", "Comprueba la publicación de GitHub Pages y vuelve a cargar");
   document.body.appendChild(moduleScript);
   window.setTimeout(() => {
@@ -52,7 +52,7 @@
     if (!window.NACAR_BOOT_STARTED) {
       showError("No se ha podido ejecutar el módulo 3D", "El navegador no ha iniciado src/main.js. Revisa la descarga del archivo y la consola de Chrome.");
     } else {
-      showError("El motor 3D sigue inicializando", "Fase actual: " + (window.NACAR_BOOT_STAGE || "sin información") + ". Comprueba chrome://gpu y la aceleración gráfica de Chrome.");
+      showError("El motor 3D sigue inicializando", "Fase actual: " + (window.NACAR_BOOT_STAGE || "sin información") + ".");
     }
   }, 20000);
 })();
