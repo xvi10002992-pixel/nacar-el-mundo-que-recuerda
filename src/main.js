@@ -1,11 +1,15 @@
-// Arranque con diagnóstico visible: si falla la descarga del motor 3D, se muestra el error en pantalla.
+// Arranque 3D con el mapa oficial de importaciones de Three.js WebGPU.
+window.NACAR_BOOT_STARTED=true;
+window.NACAR_BOOT_STAGE="Descargando el motor 3D";
 async function boot(){
-const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js");
+window.NACAR_BOOT_STAGE="Preparando Three.js WebGPU";
+const THREE = await import("three/webgpu");
 const canvas=document.querySelector("#world"),intro=document.querySelector("#intro"),startButton=document.querySelector("#start"),statusText=document.querySelector("#status-text"),message=document.querySelector("#message"),errorPanel=document.querySelector("#error-panel");
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9baea7);scene.fog=new THREE.FogExp2(0x9baea7,.012);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,350);
 let renderer;
 let rendererMode="WebGPU";
+window.NACAR_BOOT_STAGE="Creando el dispositivo gráfico";
 function showGraphicsError(error){
  window.NACAR_BOOT_FAILED=true;
  const gpuApi=typeof navigator.gpu!=="undefined";
@@ -18,6 +22,7 @@ try{
  if(!THREE.WebGPURenderer)throw new Error("Esta descarga de Three.js no incluye WebGPURenderer.");
  renderer=new THREE.WebGPURenderer({canvas,antialias:false,powerPreference:"high-performance"});
  await renderer.init();
+ window.NACAR_BOOT_STAGE="Construyendo el escenario 3D";
 }catch(webgpuError){
  showGraphicsError(webgpuError);
  return;
@@ -78,10 +83,11 @@ body.position.y=THREE.MathUtils.damp(body.position.y,crouched?-.48:0,12,dt);body
 if(moving&&grounded)animTime+=dt*currentSpeed*(crouched?2.8:2);const swing=moving&&grounded?Math.sin(animTime)*(crouched?.28:running?.78:.48):0;legPivots[0].rotation.x=THREE.MathUtils.damp(legPivots[0].rotation.x,swing,12,dt);legPivots[1].rotation.x=THREE.MathUtils.damp(legPivots[1].rotation.x,-swing,12,dt);armPivots[0].rotation.x=THREE.MathUtils.damp(armPivots[0].rotation.x,-swing*.72,12,dt);armPivots[1].rotation.x=THREE.MathUtils.damp(armPivots[1].rotation.x,swing*.72,12,dt);torso.rotation.x=THREE.MathUtils.damp(torso.rotation.x,crouched?.22:moving?-.035:0,8,dt);
 if(crouched)setStatus("Agachado");else if(!grounded)setStatus("En el aire");else if(moving&&running)setStatus("Corriendo");else if(moving)setStatus("Caminando");else setStatus(pointerLocked?"Explorando":"Pausa");message.textContent=crouched?"Movimiento silencioso":"Explora las ruinas"}
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(intro.classList.contains("hidden"))updatePlayer(dt);updateCamera(dt);renderer.render(scene,camera)}
-updateCamera(1);animate();window.NACAR_BOOT_OK=true;window.NACAR_RENDER_MODE=rendererMode;console.info("NÁCAR: motor 3D inicializado con WebGPURenderer");window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
+updateCamera(1);animate();window.NACAR_BOOT_OK=true;window.NACAR_BOOT_STAGE="Mundo 3D listo";window.NACAR_RENDER_MODE=rendererMode;console.info("NÁCAR: motor 3D inicializado con WebGPURenderer");window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
 }
 boot().catch(error=>{
  window.NACAR_BOOT_FAILED=true;
+ window.NACAR_BOOT_STAGE="Error de arranque: "+(error&&error.message?error.message:String(error));
  const panel=document.querySelector("#error-panel");
  if(panel){panel.hidden=false;panel.textContent="NÁCAR no ha podido iniciar. Error: "+(error&&error.message?error.message:String(error))+". Comprueba la conexión a Internet y recarga la página."}
  console.error("Error al iniciar NÁCAR:",error);
