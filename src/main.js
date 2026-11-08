@@ -1,149 +1,28 @@
 // Arranque con diagnóstico visible: si falla la descarga del motor 3D, se muestra el error en pantalla.
 async function boot(){
-const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js");
+const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js");
 const canvas=document.querySelector("#world"),intro=document.querySelector("#intro"),startButton=document.querySelector("#start"),statusText=document.querySelector("#status-text"),message=document.querySelector("#message"),errorPanel=document.querySelector("#error-panel");
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9baea7);scene.fog=new THREE.FogExp2(0x9baea7,.012);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,350);
 let renderer;
-function runCanvasFallback(webglError){
- const fallbackCanvas=document.createElement("canvas");
- fallbackCanvas.id="world";
- fallbackCanvas.setAttribute("aria-label","Mundo de NÁCAR en modo de compatibilidad");
- fallbackCanvas.style.cssText="display:block;width:100%;height:100%;outline:none;cursor:crosshair";
- canvas.replaceWith(fallbackCanvas);
- const ctx=fallbackCanvas.getContext("2d");
- if(!ctx){
-   errorPanel.hidden=false;
-   errorPanel.textContent="Este navegador no permite ni WebGL ni Canvas 2D. Activa la aceleración gráfica de Chrome o prueba otro navegador.";
-   return;
- }
- errorPanel.hidden=true;
- message.textContent="Modo de compatibilidad: activa WebGL en Chrome para recuperar los gráficos 3D";
- const keys=new Set();
- let px=0,pz=8,yaw=0,locked=false,last=performance.now(),jump=0,jumpV=0;
- const status=t=>{statusText.textContent=t};
- let seed=3917;
- const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
- const scenery=[];
- for(let i=0;i<145;i++){
-   const x=(rnd()-.5)*170,z=(rnd()-.5)*170;
-   if(Math.hypot(x,z)<8)continue;
-   scenery.push({x,z,h:2.5+rnd()*4.5,r:0.8+rnd()*1.4,type:rnd()>.17?"tree":"rock",tone:Math.floor(rnd()*3)});
- }
- const mountains=[];
- for(let i=0;i<13;i++)mountains.push({x:i/12,h:55+rnd()*115,w:55+rnd()*95});
- function resize(){
-   const ratio=Math.min(window.devicePixelRatio||1,1.5);
-   fallbackCanvas.width=Math.max(1,Math.floor(innerWidth*ratio));
-   fallbackCanvas.height=Math.max(1,Math.floor(innerHeight*ratio));
-   ctx.setTransform(ratio,0,0,ratio,0,0);
- }
- function project(x,y,z,w,h){
-   const dx=x-px,dz=z-pz;
-   const side=dx*Math.cos(yaw)-dz*Math.sin(yaw);
-   const depth=-dx*Math.sin(yaw)-dz*Math.cos(yaw);
-   if(depth<.25)return null;
-   const focal=Math.min(w,h)*.92;
-   const scale=focal/depth;
-   return {x:w/2+side*scale,y:h*.43+(1.65-y)*scale,scale,depth};
- }
- function draw(now){
-   const w=innerWidth,h=innerHeight;
-   const sky=ctx.createLinearGradient(0,0,0,h*.72);
-   sky.addColorStop(0,"#829e9a");sky.addColorStop(.62,"#c7c8aa");sky.addColorStop(1,"#d8cba5");
-   ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
-   ctx.fillStyle="#f2d6a0";ctx.beginPath();ctx.arc(w*.78,h*.17,Math.min(w,h)*.055,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle="#71847b";ctx.beginPath();ctx.moveTo(0,h*.47);
-   for(let i=0;i<mountains.length;i++){
-     const m=mountains[i],x=m.x*w;
-     ctx.lineTo(x,h*.47-m.h);ctx.lineTo(x+m.w,h*.47);
-   }
-   ctx.lineTo(w,h*.62);ctx.lineTo(0,h*.62);ctx.closePath();ctx.fill();
-   const ground=ctx.createLinearGradient(0,h*.46,0,h);
-   ground.addColorStop(0,"#687b58");ground.addColorStop(.45,"#43583e");ground.addColorStop(1,"#263b2d");
-   ctx.fillStyle=ground;ctx.fillRect(0,h*.46,w,h*.54);
-   // Perspective tracks on the forest floor.
-   ctx.strokeStyle="rgba(207,190,137,.16)";ctx.lineWidth=1;
-   for(let i=-12;i<=12;i++){
-     ctx.beginPath();ctx.moveTo(w/2+i*2,h*.47);ctx.lineTo(w/2+i*w*.09,h);ctx.stroke();
-   }
-   for(let j=1;j<9;j++){
-     const y=h*.46+(j/9)*(j/9)*h*.54;
-     ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
-   }
-   // Distant ancient stone arch.
-   const a1=project(-3.1,0,-27,w,h),a2=project(-3.1,5.5,-27,w,h),a3=project(3.1,0,-27,w,h),a4=project(3.1,5.5,-27,w,h);
-   if(a1&&a2&&a3&&a4){
-     ctx.strokeStyle="#77786b";ctx.lineWidth=Math.max(2,a1.scale*.95);ctx.beginPath();
-     ctx.moveTo(a1.x,a1.y);ctx.lineTo(a2.x,a2.y);ctx.moveTo(a3.x,a3.y);ctx.lineTo(a4.x,a4.y);ctx.stroke();
-     ctx.strokeStyle="#aaa38b";ctx.lineWidth=Math.max(3,a2.scale*1.1);ctx.beginPath();ctx.moveTo(a2.x,a2.y);ctx.lineTo(a4.x,a4.y);ctx.stroke();
-   }
-   const visible=scenery.map(o=>({o,p:project(o.x,0,o.z,w,h)})).filter(v=>v.p).sort((a,b)=>b.p.depth-a.p.depth);
-   for(const {o,p} of visible){
-     if(o.type==="tree"){
-       const scale=Math.min(p.scale,90),base=p.y,top=base-o.h*scale;
-       ctx.fillStyle="#554632";ctx.fillRect(p.x-scale*.09,base-o.h*scale*.44,scale*.18,o.h*scale*.44);
-       ctx.fillStyle=["#314b3c","#405c40","#5b6946"][o.tone];
-       ctx.beginPath();ctx.moveTo(p.x,top);ctx.lineTo(p.x-o.r*scale,base-o.h*scale*.22);ctx.lineTo(p.x+o.r*scale,base-o.h*scale*.22);ctx.closePath();ctx.fill();
-       ctx.fillStyle="rgba(180,188,133,.13)";ctx.beginPath();ctx.moveTo(p.x,top+scale*.25);ctx.lineTo(p.x-o.r*scale*.35,base-o.h*scale*.3);ctx.lineTo(p.x+scale*.12,base-o.h*scale*.3);ctx.closePath();ctx.fill();
-     }else{
-       ctx.fillStyle="#77796c";ctx.beginPath();ctx.ellipse(p.x,p.y-o.r*p.scale*.22,o.r*p.scale,o.r*p.scale*.48,0,0,Math.PI*2);ctx.fill();
-     }
-   }
-   // A simple third-person placeholder avatar, anchored near the bottom of the view.
-   const bob=Math.sin(now*.006)*2;
-   ctx.fillStyle="rgba(10,18,13,.35)";ctx.beginPath();ctx.ellipse(w*.5,h*.91,18,6,0,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle="#313a32";ctx.fillRect(w*.5-11,h*.82+bob,9, h*.09+jump);
-   ctx.fillRect(w*.5+2,h*.82+bob,9,h*.09+jump);
-   ctx.fillStyle="#9a8060";ctx.fillRect(w*.5-13,h*.72+bob,26,h*.12);
-   ctx.fillStyle="#c59c79";ctx.beginPath();ctx.arc(w*.5,h*.695+bob,10,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle="#292b27";ctx.beginPath();ctx.arc(w*.5,h*.69+bob,10,Math.PI,Math.PI*2);ctx.fill();
-   if(!locked && !intro.classList.contains("hidden")){
-     // The title screen remains interactive above the scenery.
-   }
-   requestAnimationFrame(draw);
- }
- function requestLock(){
-   if(fallbackCanvas.requestPointerLock)fallbackCanvas.requestPointerLock();
-   else status("Este navegador no permite capturar el ratón");
- }
- document.addEventListener("pointerlockchange",()=>{
-   locked=document.pointerLockElement===fallbackCanvas;
-   status(locked?"Explorando · ratón capturado":"Pausa · haz clic para recuperar la cámara");
-   if(!locked && intro.classList.contains("hidden"))message.textContent="Haz clic en el mundo para volver a capturar el ratón";
- });
- document.addEventListener("pointerlockerror",()=>{status("Chrome ha bloqueado la captura del ratón")});
- document.addEventListener("mousemove",e=>{if(locked)yaw-=e.movementX*.0025});
- fallbackCanvas.addEventListener("click",()=>{if(intro.classList.contains("hidden")&&!locked)requestLock()});
- startButton.addEventListener("click",()=>{
-   intro.classList.add("hidden");message.textContent="WASD mueve · ratón mira · ESC libera el ratón";requestLock();
- });
- window.addEventListener("keydown",e=>{
-   if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();
-   keys.add(e.code);
-   if(e.code==="Space"&&jump===0){jumpV=5.5}
- });
- window.addEventListener("keyup",e=>keys.delete(e.code));
- window.addEventListener("blur",()=>keys.clear());
- function update(now){
-   const dt=Math.min((now-last)/1000,.04);last=now;
-   const speed=keys.has("ShiftLeft")||keys.has("ShiftRight")?8:4.5;
-   const f=(keys.has("KeyW")?1:0)-(keys.has("KeyS")?1:0);
-   const s=(keys.has("KeyD")?1:0)-(keys.has("KeyA")?1:0);
-   px+=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*speed*dt;
-   pz+=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*speed*dt;
-   if(jump>0||jumpV>0){jump+=jumpV*dt;jumpV-=14*dt;if(jump<0){jump=0;jumpV=0}}
-   if(intro.classList.contains("hidden"))status(locked?"Explorando · ratón capturado":(f?"Caminando":"Pausa"));
-   requestAnimationFrame(update);
- }
- resize();window.addEventListener("resize",resize);
- requestAnimationFrame(draw);requestAnimationFrame(update);
- console.warn("NÁCAR usa el modo de compatibilidad 2D porque WebGL no está disponible:",webglError);
+let rendererMode="WebGPU";
+function showGraphicsError(error){
+ window.NACAR_BOOT_FAILED=true;
+ const gpuApi=typeof navigator.gpu!=="undefined";
+ statusText.textContent="Motor 3D no disponible";
+ message.textContent="No se ha podido iniciar el mundo 3D";
+ errorPanel.hidden=false;
+ errorPanel.textContent="NÁCAR necesita WebGPU o WebGL 2 para dibujar el mundo 3D. No se ha podido crear el motor gráfico. Detalle: "+(error&&error.message?error.message:String(error))+". API WebGPU detectada por Chrome: "+(gpuApi?"sí":"no")+". En Chrome abre chrome://settings/system, activa la aceleración gráfica y reinicia. En Linux, si WebGPU sigue sin estar disponible, abre chrome://flags/#enable-unsafe-webgpu y chrome://flags/#enable-vulkan, actívalas y reinicia Chrome. Después vuelve a cargar NÁCAR.";
 }
-
-try{renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:"default",failIfMajorPerformanceCaveat:false});}
-catch(error){runCanvasFallback(error);return;}
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+try{
+ if(!THREE.WebGPURenderer)throw new Error("Esta descarga de Three.js no incluye WebGPURenderer.");
+ renderer=new THREE.WebGPURenderer({canvas,antialias:false,powerPreference:"high-performance"});
+ await renderer.init();
+}catch(webgpuError){
+ showGraphicsError(webgpuError);
+ return;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);if(renderer.shadowMap){renderer.shadowMap.enabled=true;if(THREE.PCFSoftShadowMap!==undefined)renderer.shadowMap.type=THREE.PCFSoftShadowMap;}renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
 scene.add(new THREE.HemisphereLight(0xdce9e1,0x435047,2));
 const sun=new THREE.DirectionalLight(0xffe4bd,3.2);sun.position.set(-35,55,25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-55;sun.shadow.camera.right=55;sun.shadow.camera.top=55;sun.shadow.camera.bottom=-55;sun.shadow.normalBias=.035;scene.add(sun);
 function terrainHeight(x,z){return .34*Math.sin(x*.12)*Math.cos(z*.105)+.19*Math.sin(z*.23+x*.07)+.07*Math.cos(x*.31-z*.18)}
@@ -199,7 +78,7 @@ body.position.y=THREE.MathUtils.damp(body.position.y,crouched?-.48:0,12,dt);body
 if(moving&&grounded)animTime+=dt*currentSpeed*(crouched?2.8:2);const swing=moving&&grounded?Math.sin(animTime)*(crouched?.28:running?.78:.48):0;legPivots[0].rotation.x=THREE.MathUtils.damp(legPivots[0].rotation.x,swing,12,dt);legPivots[1].rotation.x=THREE.MathUtils.damp(legPivots[1].rotation.x,-swing,12,dt);armPivots[0].rotation.x=THREE.MathUtils.damp(armPivots[0].rotation.x,-swing*.72,12,dt);armPivots[1].rotation.x=THREE.MathUtils.damp(armPivots[1].rotation.x,swing*.72,12,dt);torso.rotation.x=THREE.MathUtils.damp(torso.rotation.x,crouched?.22:moving?-.035:0,8,dt);
 if(crouched)setStatus("Agachado");else if(!grounded)setStatus("En el aire");else if(moving&&running)setStatus("Corriendo");else if(moving)setStatus("Caminando");else setStatus(pointerLocked?"Explorando":"Pausa");message.textContent=crouched?"Movimiento silencioso":"Explora las ruinas"}
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(intro.classList.contains("hidden"))updatePlayer(dt);updateCamera(dt);renderer.render(scene,camera)}
-updateCamera(1);animate();window.NACAR_BOOT_OK=true;window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
+updateCamera(1);animate();window.NACAR_BOOT_OK=true;window.NACAR_RENDER_MODE=rendererMode;console.info("NÁCAR: motor 3D inicializado con WebGPURenderer");window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
 }
 boot().catch(error=>{
  window.NACAR_BOOT_FAILED=true;
