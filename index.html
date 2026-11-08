@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101b1a">
 <title>NÁCAR — El mundo que recuerda</title>
-<link rel="stylesheet" href="./styles.css">
+<link rel="stylesheet" href="./styles.css?v=20261108-3">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}</script>
 </head>
 <body>
@@ -28,5 +28,30 @@
   <div class="footer-note">PROTOTIPO DE MOVIMIENTO · MODELOS Y ANIMACIONES PROVISIONALES</div>
   <div class="error-panel" id="error-panel" hidden></div>
 </main>
-<script type="module" src="./src/main.js"></script>
+<script>
+(() => {
+  const panel = document.getElementById("error-panel");
+  const showError = (label, detail) => {
+    panel.hidden = false;
+    panel.textContent = label + (detail ? ": " + detail : "");
+  };
+  window.addEventListener("error", event => {
+    showError("Error de JavaScript", event.message || "No se pudo ejecutar el juego");
+  });
+  window.addEventListener("unhandledrejection", event => {
+    const reason = event.reason;
+    showError("Error al cargar el juego", reason && reason.message ? reason.message : String(reason || "Error desconocido"));
+  });
+  const moduleScript = document.createElement("script");
+  moduleScript.type = "module";
+  moduleScript.src = "./src/main.js?v=20261108-3";
+  moduleScript.onerror = () => showError("No se pudo descargar src/main.js", "Comprueba la publicación de GitHub Pages y vuelve a cargar");
+  document.body.appendChild(moduleScript);
+  window.setTimeout(() => {
+    if (!window.NACAR_BOOT_OK && !window.NACAR_BOOT_FAILED) {
+      showError("NÁCAR no ha terminado de arrancar", "El navegador no ha ejecutado el motor 3D. Abre F12 > Consola y envíame el primer error rojo.");
+    }
+  }, 10000);
+})();
+</script>
 </body></html>
