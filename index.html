@@ -6,13 +6,13 @@
 <meta name="theme-color" content="#101b1a">
 <title>NÁCAR — El mundo que recuerda</title>
 <link rel="stylesheet" href="./styles.css?v=20261108-8">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js","three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js","three/tsl":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.tsl.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}</script>
 </head>
 <body>
 <main id="game">
   <canvas id="world" aria-label="Mundo 3D de NÁCAR"></canvas>
   <section class="intro" id="intro">
-    <div class="eyebrow">PROTOTIPO JUGABLE · PRE-ALPHA</div>
+    <div class="eyebrow">PROTOTIPO JUGABLE · PRE-ALPHA · MOTOR WEBGL 2</div>
     <h1>NÁCAR</h1><p class="subtitle">El mundo que recuerda</p>
     <p class="intro-copy">Un mundo antiguo despierta bajo tus pasos.</p>
     <button id="start" type="button">Entrar en el mundo</button>
@@ -44,7 +44,7 @@
   });
   const moduleScript = document.createElement("script");
   moduleScript.type = "module";
-  moduleScript.src = "./src/main.js?v=20261108-8";
+  moduleScript.src = "./src/main.js?v=20261108-webgl2-1";
   moduleScript.onerror = () => showError("No se pudo descargar src/main.js", "Comprueba la publicación de GitHub Pages y vuelve a cargar");
   document.body.appendChild(moduleScript);
   window.setTimeout(() => {
