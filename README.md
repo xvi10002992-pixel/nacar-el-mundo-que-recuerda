@@ -2,6 +2,12 @@
 
 Primer prototipo jugable en navegador. Está construido con HTML, CSS, JavaScript y Three.js; no necesita Unity ni instalar programas.
 
+## Jugar directamente
+
+[**Abrir NÁCAR en el navegador**](https://xvi10002992-pixel.github.io/nacar-el-mundo-que-recuerda/)
+
+El juego carga desde `index.html`: HTML, estilos CSS y JavaScript están integrados en ese único archivo. No hace falta abrirlos por separado.
+
 ## Probarlo
 1. Abre el repositorio en GitHub.
 2. Entra en **Settings → Pages**.
