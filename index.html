@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101b1a">
 <title>NÁCAR — El mundo que recuerda</title>
-<link rel="stylesheet" href="./styles.css?v=20261108-7">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/tsl":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.tsl.js"}}</script>
+<link rel="stylesheet" href="./styles.css?v=20261108-8">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js","three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.webgpu.js","three/tsl":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.tsl.js"}}</script>
 </head>
 <body>
 <main id="game">
@@ -44,7 +44,7 @@
   });
   const moduleScript = document.createElement("script");
   moduleScript.type = "module";
-  moduleScript.src = "./src/main.js?v=20261108-7";
+  moduleScript.src = "./src/main.js?v=20261108-8";
   moduleScript.onerror = () => showError("No se pudo descargar src/main.js", "Comprueba la publicación de GitHub Pages y vuelve a cargar");
   document.body.appendChild(moduleScript);
   window.setTimeout(() => {
