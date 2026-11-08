@@ -10,4 +10,4 @@
 <section class="hud"><div class="hud-title">NÁCAR <span>· EXPLORACIÓN</span></div><div class="status"><i></i><span id="status-text">Preparado</span></div><div class="controls"><span><kbd>W A S D</kbd> Mover</span><span><kbd>SHIFT</kbd> Correr</span><span><kbd>CTRL</kbd> Agacharse</span><span><kbd>ESPACIO</kbd> Saltar</span><span><kbd>E</kbd> Interactuar</span><span><kbd>RATÓN</kbd> Cámara</span></div></section>
 <div class="crosshair" aria-hidden="true">+</div><div class="message" id="message">Pulsa E para explorar</div>
 <div class="footer-note">PROTOTIPO DE MOVIMIENTO · LOS MODELOS Y ANIMACIONES FINALES SE AÑADIRÁN MÁS ADELANTE</div>
-</main><script type="module" src="./src/main.js"></script></body></html>
+</main><script>document.getElementById("start").addEventListener("click",function(){document.getElementById("intro").classList.add("hidden");document.getElementById("status-text").textContent="Explorando";document.getElementById("message").textContent="WASD para moverte · clic para activar la cámara";});</script><script type="module" src="./src/main.js"></script></body></html>
