@@ -13,10 +13,13 @@ window.NACAR_BOOT_STAGE="Creando el dispositivo gráfico";
 function showGraphicsError(error){
  window.NACAR_BOOT_FAILED=true;
  const gpuApi=typeof navigator.gpu!=="undefined";
- statusText.textContent="Motor 3D no disponible";
- message.textContent="No se ha podido iniciar el mundo 3D";
+ statusText.textContent="Menú disponible · motor 3D pendiente";
+ message.textContent="El menú está disponible. Reintenta cuando el motor gráfico esté listo.";
+ startButton.textContent="Reintentar motor 3D";
+ startButton.onclick=()=>window.location.reload();
  errorPanel.hidden=false;
- errorPanel.textContent="NÁCAR necesita WebGPU o WebGL 2 para dibujar el mundo 3D. No se ha podido crear el motor gráfico. Detalle: "+(error&&error.message?error.message:String(error))+". API WebGPU detectada por Chrome: "+(gpuApi?"sí":"no")+". En Chrome abre chrome://settings/system, activa la aceleración gráfica y reinicia. En Linux, si WebGPU sigue sin estar disponible, abre chrome://flags/#enable-unsafe-webgpu y chrome://flags/#enable-vulkan, actívalas y reinicia Chrome. Después vuelve a cargar NÁCAR.";
+ errorPanel.textContent="NÁCAR ha abierto el menú, pero este navegador no ha podido iniciar el motor 3D. Detalle técnico: "+(error&&error.message?error.message:String(error))+". WebGPU detectado: "+(gpuApi?"sí":"no")+". Para intentar recuperar el 3D, activa la aceleración gráfica en chrome://settings/system y reinicia Chrome. El botón «Reintentar motor 3D» volverá a iniciar la página.";
+ document.body.classList.add("graphics-unavailable");
 }
 try{
  if(!THREE.WebGPURenderer)throw new Error("Esta descarga de Three.js no incluye WebGPURenderer.");
