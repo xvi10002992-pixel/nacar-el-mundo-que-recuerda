@@ -1,4 +1,6 @@
-import * as THREE from "three";
+// Arranque con diagnóstico visible: si falla la descarga del motor 3D, se muestra el error en pantalla.
+async function boot(){
+const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js");
 const canvas=document.querySelector("#world"),intro=document.querySelector("#intro"),startButton=document.querySelector("#start"),statusText=document.querySelector("#status-text"),message=document.querySelector("#message"),errorPanel=document.querySelector("#error-panel");
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9baea7);scene.fog=new THREE.FogExp2(0x9baea7,.012);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,350);
@@ -34,7 +36,7 @@ const keys=new Set();let pointerLocked=false,yaw=Math.PI,pitch=-.12,verticalVelo
 const WALK_SPEED=3.4,RUN_SPEED=6.2,CROUCH_SPEED=1.65,ACCELERATION=11,BRAKING=15,GRAVITY=19,JUMP_FORCE=7.1;
 function setStatus(t){statusText.textContent=t}
 function updateCamera(dt){const h=crouched?1.22:1.72,d=crouched?5.2:5.8;cameraTarget.set(player.position.x,player.position.y+h,player.position.z);const horizontal=Math.cos(pitch)*d;cameraPosition.set(cameraTarget.x+Math.sin(yaw)*horizontal,cameraTarget.y+Math.sin(pitch)*d+.65,cameraTarget.z+Math.cos(yaw)*horizontal);camera.position.lerp(cameraPosition,1-Math.exp(-7*dt));camera.lookAt(cameraTarget)}
-document.addEventListener("pointerlockchange",()=>{pointerLocked=document.pointerLockElement===canvas;if(pointerLocked){setStatus("Explorando · ratón capturado");message.textContent="Ratón capturado · ESC para liberar"}else if(!intro.classList.contains("hidden"))setStatus("Preparado");else{setStatus("Pausa · haz clic para recuperar la cámara");message.textContent="Haz clic en el mundo para volver a capturar el ratón"}});
+document.addEventListener("pointerlockerror",()=>{setStatus("Chrome ha bloqueado la captura del ratón");message.textContent="Haz clic en el mundo para intentar capturarlo de nuevo"});\ndocument.addEventListener("pointerlockchange",()=>{pointerLocked=document.pointerLockElement===canvas;if(pointerLocked){setStatus("Explorando · ratón capturado");message.textContent="Ratón capturado · ESC para liberar"}else if(!intro.classList.contains("hidden"))setStatus("Preparado");else{setStatus("Pausa · haz clic para recuperar la cámara");message.textContent="Haz clic en el mundo para volver a capturar el ratón"}});
 document.addEventListener("mousemove",e=>{if(!pointerLocked)return;yaw-=e.movementX*.0022;pitch=THREE.MathUtils.clamp(pitch-e.movementY*.0018,-.72,.38)});
 
 window.addEventListener("keydown",e=>{if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();keys.add(e.code);if(e.code==="Space"&&grounded&&!crouched&&intro.classList.contains("hidden")){verticalVelocity=JUMP_FORCE;grounded=false}if(e.code==="KeyE"&&intro.classList.contains("hidden")){message.textContent="Aún no hay mecanismos activados en esta prueba";setTimeout(()=>message.textContent="Explora las ruinas",2200)}});
@@ -61,3 +63,9 @@ if(moving&&grounded)animTime+=dt*currentSpeed*(crouched?2.8:2);const swing=movin
 if(crouched)setStatus("Agachado");else if(!grounded)setStatus("En el aire");else if(moving&&running)setStatus("Corriendo");else if(moving)setStatus("Caminando");else setStatus(pointerLocked?"Explorando":"Pausa");message.textContent=crouched?"Movimiento silencioso":"Explora las ruinas"}
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(intro.classList.contains("hidden"))updatePlayer(dt);updateCamera(dt);renderer.render(scene,camera)}
 updateCamera(1);animate();window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
+}
+boot().catch(error=>{
+ const panel=document.querySelector("#error-panel");
+ if(panel){panel.hidden=false;panel.textContent="NÁCAR no ha podido iniciar. Error: "+(error&&error.message?error.message:String(error))+". Comprueba la conexión a Internet y recarga la página."}
+ console.error("Error al iniciar NÁCAR:",error);
+});
