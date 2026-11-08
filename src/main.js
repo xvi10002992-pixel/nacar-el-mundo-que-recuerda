@@ -62,10 +62,10 @@ body.position.y=THREE.MathUtils.damp(body.position.y,crouched?-.48:0,12,dt);body
 if(moving&&grounded)animTime+=dt*currentSpeed*(crouched?2.8:2);const swing=moving&&grounded?Math.sin(animTime)*(crouched?.28:running?.78:.48):0;legPivots[0].rotation.x=THREE.MathUtils.damp(legPivots[0].rotation.x,swing,12,dt);legPivots[1].rotation.x=THREE.MathUtils.damp(legPivots[1].rotation.x,-swing,12,dt);armPivots[0].rotation.x=THREE.MathUtils.damp(armPivots[0].rotation.x,-swing*.72,12,dt);armPivots[1].rotation.x=THREE.MathUtils.damp(armPivots[1].rotation.x,swing*.72,12,dt);torso.rotation.x=THREE.MathUtils.damp(torso.rotation.x,crouched?.22:moving?-.035:0,8,dt);
 if(crouched)setStatus("Agachado");else if(!grounded)setStatus("En el aire");else if(moving&&running)setStatus("Corriendo");else if(moving)setStatus("Caminando");else setStatus(pointerLocked?"Explorando":"Pausa");message.textContent=crouched?"Movimiento silencioso":"Explora las ruinas"}
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(intro.classList.contains("hidden"))updatePlayer(dt);updateCamera(dt);renderer.render(scene,camera)}
-updateCamera(1);animate();window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
+updateCamera(1);animate();window.NACAR_BOOT_OK=true;window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.6))});
 }
 boot().catch(error=>{
- const panel=document.querySelector("#error-panel");
+ window.NACAR_BOOT_FAILED=true;\n const panel=document.querySelector("#error-panel");
  if(panel){panel.hidden=false;panel.textContent="NÁCAR no ha podido iniciar. Error: "+(error&&error.message?error.message:String(error))+". Comprueba la conexión a Internet y recarga la página."}
  console.error("Error al iniciar NÁCAR:",error);
 });
